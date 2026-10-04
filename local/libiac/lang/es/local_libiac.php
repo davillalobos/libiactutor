@@ -8,3 +8,4 @@
 defined('MOODLE_INTERNAL') || die();
 
 $string['pluginname'] = 'Libiac';
+$string['libiac:managecontext'] = 'Gestionar el contexto de usuario de Libiac mediante servicios web';
