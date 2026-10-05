@@ -14,6 +14,7 @@ define([], function() {
     var REQUEST_TIMEOUT_MS = 90000;
     var AUDIO_MIME = {mp3: 'audio/mpeg', wav: 'audio/wav', ogg: 'audio/ogg'};
     var WIDGET_REGION = 'local_libiac-widget';
+    var MAX_PAGE_TEXT = 6000;
 
     /**
      * Encodes mono float samples (-1..1) as a 16-bit PCM WAV.
@@ -76,6 +77,41 @@ define([], function() {
             .then(function(rendered) {
                 return new Blob([encodeWav(rendered.getChannelData(0), TARGET_RATE)], {type: 'audio/wav'});
             });
+    };
+
+    /**
+     * What the user is looking at: page title, path and visible text of the main
+     * region (the widget itself lives outside it). Sent with every turn so the tutor
+     * can answer about the page; the server limits and treats it as untrusted data.
+     *
+     * @return {Object}
+     */
+    var collectPageContext = function() {
+        var main = document.querySelector('[role="main"]') || document.querySelector('#region-main');
+        var text = main ? (main.innerText || '') : '';
+        var params = new URLSearchParams(window.location.search);
+        params.delete('sesskey');
+        var query = params.toString();
+        return {
+            page_title: document.title.slice(0, 255),
+            page_url: (window.location.pathname + (query ? '?' + query : '')).slice(0, 1000),
+            page_text: text.replace(/[ \t]+/g, ' ').replace(/\n\s*\n+/g, '\n').trim().slice(0, MAX_PAGE_TEXT)
+        };
+    };
+
+    /**
+     * @param {Blob} blob
+     * @return {Promise<String>} base64 of the blob's bytes
+     */
+    var blobToBase64 = function(blob) {
+        return blob.arrayBuffer().then(function(buffer) {
+            var bytes = new Uint8Array(buffer);
+            var binary = '';
+            for (var i = 0; i < bytes.length; i += 0x8000) {
+                binary += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+            }
+            return btoa(binary);
+        });
     };
 
     var el = function(tag, className, attributes) {
@@ -225,7 +261,7 @@ define([], function() {
         var sendText = function(text) {
             addMessage('user', strings.you, text);
             setBusy(true);
-            post('chat', JSON.stringify({message: text}), 'application/json').then(function(data) {
+            post('chat', JSON.stringify({message: text, page_context: collectPageContext()}), 'application/json').then(function(data) {
                 addMessage('assistant', strings.assistant, data.message);
             }).catch(function(error) {
                 showError(error.key);
@@ -237,7 +273,13 @@ define([], function() {
 
         var sendAudio = function(wav) {
             setBusy(true);
-            post('voice', wav, 'application/octet-stream').then(function(data) {
+            blobToBase64(wav).then(function(audio) {
+                return post(
+                    'voice',
+                    JSON.stringify({audio_base64: audio, page_context: collectPageContext()}),
+                    'application/json'
+                );
+            }).then(function(data) {
                 addMessage('user', strings.you, data.transcript);
                 var item = addMessage('assistant', strings.assistant, data.response_text);
                 if (data.audio_base64) {

@@ -9,8 +9,11 @@
  * details never reach the browser.
  *
  * Query: action=chat|voice, courseid, sesskey.
- * chat  body: JSON {"message": "..."}  -> {"message": "..."}
- * voice body: raw WAV audio            -> {transcript, response_text, audio_base64, audio_format}
+ * chat  body: JSON {"message": "...", "page_context": {...}}        -> {"message": "..."}
+ * voice body: JSON {"audio_base64": "<WAV>", "page_context": {...}}  -> {transcript, response_text, audio_base64, audio_format}
+ *
+ * page_context (title, url, visible text of the page the user is on) comes from the
+ * browser and is length-limited here; the course id and name always come from Moodle.
  *
  * @package    local_libiac
  */
@@ -21,6 +24,23 @@ require_once(__DIR__ . '/../../config.php');
 
 const LOCAL_LIBIAC_MAX_AUDIO_BYTES = 10 * 1024 * 1024; // Same limit as the backend (VOICE_MAX_AUDIO_BYTES).
 const LOCAL_LIBIAC_MAX_MESSAGE_CHARS = 4000;
+const LOCAL_LIBIAC_PAGE_FIELD_LIMITS = ['page_title' => 255, 'page_url' => 1000, 'page_text' => 8000];
+
+/**
+ * Keeps only the known page fields, as length-limited strings, and adds the trusted
+ * course id/name from Moodle itself.
+ */
+function local_libiac_page_context($input, stdClass $course): array {
+    $context = ['course_id' => (string) $course->id, 'course_name' => mb_substr(strip_tags(format_string($course->fullname, true, ['escape' => false])), 0, 255)];
+    if (is_array($input)) {
+        foreach (LOCAL_LIBIAC_PAGE_FIELD_LIMITS as $field => $limit) {
+            if (isset($input[$field]) && is_string($input[$field])) {
+                $context[$field] = mb_substr($input[$field], 0, $limit);
+            }
+        }
+    }
+    return $context;
+}
 
 function local_libiac_respond(int $status, array $data): void {
     http_response_code($status);
@@ -64,18 +84,27 @@ if ($action === 'chat') {
         local_libiac_fail('invalid', 400);
     }
     $path = '/chat';
-    $body = json_encode(['message' => $message]);
+    $body = json_encode([
+        'message' => $message,
+        'page_context' => local_libiac_page_context($data['page_context'] ?? null, $course),
+    ]);
     $contenttype = 'application/json';
 } else if ($action === 'voice') {
-    if ($raw === '') {
+    $data = json_decode($raw, true);
+    $audio = is_array($data) && isset($data['audio_base64']) && is_string($data['audio_base64'])
+        ? $data['audio_base64'] : '';
+    if ($audio === '') {
         local_libiac_fail('invalid', 400);
     }
-    if (strlen($raw) > LOCAL_LIBIAC_MAX_AUDIO_BYTES) {
+    if (strlen($audio) * 3 / 4 > LOCAL_LIBIAC_MAX_AUDIO_BYTES) {
         local_libiac_fail('toolarge', 413);
     }
     $path = '/voice/turn';
-    $body = $raw;
-    $contenttype = 'application/octet-stream';
+    $body = json_encode([
+        'audio_base64' => $audio,
+        'page_context' => local_libiac_page_context($data['page_context'] ?? null, $course),
+    ]);
+    $contenttype = 'application/json';
 } else {
     local_libiac_fail('invalid', 400);
 }

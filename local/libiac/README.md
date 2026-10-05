@@ -25,7 +25,8 @@ El widget **no aparece** hasta que el secreto está definido, ni para invitados 
 
 ## Cómo funciona
 - El navegador **no habla con el backend** ni ve el secreto: el JS (`amd/src/widget.js`) envía a `/local/libiac/ajax.php` (sesión de Moodle + sesskey). Ese script firma una assertion fresca (300 s) del usuario/curso y la reenvía a `POST /chat` o `POST /voice/turn` en las cabeceras `X-Moodle-Assertion` y `X-Moodle-Assertion-Signature`.
-- Voz: `MediaRecorder` graba; el navegador convierte a WAV 16 kHz mono (el STT de Gemini no acepta webm) y la respuesta `audio_base64` se reproduce automáticamente.
+- Contexto de la página: con cada mensaje (texto o voz) el widget envía el título, la ruta y el texto visible de la zona principal de la página (hasta 6000 caracteres, sin `sesskey`); `ajax.php` lo limita y añade el id y nombre del curso desde Moodle. El backend lo inyecta en el prompt del tutor como datos, no como instrucciones.
+- Voz: `MediaRecorder` graba; el navegador convierte a WAV 16 kHz mono (el STT de Gemini no acepta webm) y se envía como JSON (`audio_base64` + contexto de la página) a `/voice/turn`; la respuesta `audio_base64` se reproduce automáticamente.
 - Inyección: `lib.php` (`local_libiac_before_footer`, Moodle 4.0–4.2) y `db/hooks.php` (`before_footer_html_generation`, 4.3+); `classes/widget.php` evita cargarlo dos veces.
 - `amd/build/widget.min.js` es una copia del fuente con el nombre del módulo (sin minificar). Para regenerarlo con las herramientas de Moodle: `npx grunt amd --root=local/libiac`.
 
