@@ -111,7 +111,8 @@ if ($action === 'chat') {
 
 // 300 seconds: the backend's MOODLE_ASSERTION_MAX_LIFETIME (see assertion_signer).
 $assertion = \local_libiac\assertion_signer::build_and_sign(
-    $issuer, $secret, (string) $USER->id, (string) $course->id, 300
+    $issuer, $secret, (string) $USER->id, (string) $course->id, 300,
+    mb_substr(trim(strip_tags(fullname($USER))), 0, 255)
 );
 
 try {

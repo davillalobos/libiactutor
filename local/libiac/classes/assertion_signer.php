@@ -40,15 +40,21 @@ class assertion_signer {
         string $externaluserid,
         string $externalcourseid,
         string $issuedat,
-        string $expiresat
+        string $expiresat,
+        string $userfullname = ''
     ): array {
-        return [
+        $fields = [
             'issuer' => $issuer,
             'external_user_id' => $externaluserid,
             'external_course_id' => $externalcourseid,
             'issued_at' => $issuedat,
             'expires_at' => $expiresat,
         ];
+        // Optional signed field: the student's display name, so the backend can address them.
+        if ($userfullname !== '') {
+            $fields['user_fullname'] = $userfullname;
+        }
+        return $fields;
     }
 
     /** @param array<string, string> $fields */
@@ -78,7 +84,8 @@ class assertion_signer {
         string $secret,
         string $externaluserid,
         string $externalcourseid,
-        int $lifetimeseconds
+        int $lifetimeseconds,
+        string $userfullname = ''
     ): array {
         $now = time();
         $fields = self::build_fields(
@@ -86,7 +93,8 @@ class assertion_signer {
             $externaluserid,
             $externalcourseid,
             (string) $now,
-            (string) ($now + $lifetimeseconds)
+            (string) ($now + $lifetimeseconds),
+            $userfullname
         );
         return [
             'payload' => $fields,
