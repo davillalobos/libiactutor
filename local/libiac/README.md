@@ -29,8 +29,8 @@ El widget **no aparece** hasta que el secreto está definido, ni para invitados 
 - Inyección: `lib.php` (`local_libiac_before_footer`, Moodle 4.0–4.2) y `db/hooks.php` (`before_footer_html_generation`, 4.3+); `classes/widget.php` evita cargarlo dos veces.
 - `amd/build/widget.min.js` es una copia del fuente con el nombre del módulo (sin minificar). Para regenerarlo con las herramientas de Moodle: `npx grunt amd --root=local/libiac`.
 
-## Requisito en el backend (pendiente)
-El backend debe aceptar la assertion de Moodle en `/chat` y `/voice/turn`. Hoy `authenticate_principal` rechaza todo (fail-closed), por lo que el widget mostrará "Tu cuenta aún no está vinculada con Libiac" (401) hasta que se habilite ese adaptador. Además el usuario necesita un `ExternalIdentity` con proveedor `moodle`.
+## Requisito en el backend
+El backend (rama `feat/moodle-principal-adapter` del repo libiac) acepta la assertion en `/chat` y `/voice/turn`, con `MOODLE_ASSERTION_ISSUER` y `MOODLE_ASSERTION_SECRET` iguales a los de este plugin. Con `MOODLE_AUTO_PROVISION=true` (por defecto) crea el usuario de Libiac y su `ExternalIdentity` (proveedor `moodle`) la primera vez que un usuario escribe en el chat; con `false`, el usuario debe vincularse antes.
 
 ## Web Services
 Ver los pasos de habilitación de servicios web, token y capability `local/libiac:managecontext` (rol del usuario externo `libiac_api`).
