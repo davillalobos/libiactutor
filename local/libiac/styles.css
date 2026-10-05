@@ -1,0 +1,17 @@
+.local_libiac-widget { position: fixed; right: 1rem; bottom: 1rem; z-index: 1030; display: flex; flex-direction: column; align-items: flex-end; gap: .5rem; }
+.local_libiac-toggle { width: 3.25rem; height: 3.25rem; border-radius: 50%; font-size: 1.5rem; line-height: 1; box-shadow: 0 2px 8px rgba(0, 0, 0, .3); }
+.local_libiac-panel { width: min(22rem, calc(100vw - 2rem)); max-height: min(34rem, calc(100vh - 6rem)); display: flex; flex-direction: column; background: #fff; border: 1px solid #ced4da; border-radius: .5rem; box-shadow: 0 4px 16px rgba(0, 0, 0, .25); overflow: hidden; }
+.local_libiac-panel[hidden] { display: none; }
+.local_libiac-header { display: flex; align-items: center; justify-content: space-between; padding: .5rem .75rem; background: #0f6cbf; color: #fff; font-weight: 600; }
+.local_libiac-header .btn { color: #fff; }
+.local_libiac-messages { flex: 1 1 auto; min-height: 6rem; overflow-y: auto; display: flex; flex-direction: column; gap: .5rem; padding: .5rem; }
+.local_libiac-msg { padding: .5rem .75rem; border-radius: .5rem; max-width: 95%; overflow-wrap: anywhere; }
+.local_libiac-msg-user { align-self: flex-end; background: #e7f1ff; }
+.local_libiac-msg-assistant { align-self: flex-start; background: #f1f3f5; }
+.local_libiac-msg-error { align-self: stretch; background: #fdecea; color: #7a1f17; }
+.local_libiac-msg-who { display: block; font-size: .75rem; font-weight: 600; opacity: .7; }
+.local_libiac-msg audio { display: block; width: 100%; margin-top: .25rem; }
+.local_libiac-status { min-height: 1.25rem; margin: 0; padding: 0 .75rem; }
+.local_libiac-form { display: flex; gap: .25rem; padding: .5rem; border-top: 1px solid #dee2e6; }
+.local_libiac-form input[type="text"] { flex: 1 1 auto; min-width: 0; }
+.local_libiac-form button[aria-pressed="true"] { background: #c0392b; border-color: #c0392b; color: #fff; }
