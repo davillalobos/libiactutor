@@ -350,10 +350,36 @@ define([], function() {
             });
         };
 
+        // Welcome message: asked once per page load, the first time the chat opens. The backend
+        // only greets a student with no previous conversation; on failure nothing is shown and
+        // the next open tries again.
+        var greetingDone = false;
+        var greetingPending = false;
+        var requestGreeting = function() {
+            if (greetingDone || greetingPending || busy) {
+                return;
+            }
+            greetingPending = true;
+            setBusy(true);
+            post('greeting', JSON.stringify({page_context: collectPageContext()}), 'application/json')
+                .then(function(data) {
+                    greetingDone = true;
+                    if (data.message) {
+                        addMessage('assistant', strings.assistant, data.message);
+                    }
+                }).catch(function() {
+                    return null;
+                }).then(function() {
+                    greetingPending = false;
+                    setBusy(false);
+                });
+        };
+
         var setOpen = function(open) {
             panel.hidden = !open;
             toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
             if (open) {
+                requestGreeting();
                 input.focus();
             } else {
                 stopRecording();

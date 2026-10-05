@@ -8,9 +8,12 @@
  * POST /voice/turn. Backend failures are mapped to generic error keys — internal
  * details never reach the browser.
  *
- * Query: action=chat|voice, courseid, sesskey.
+ * Query: action=chat|voice|greeting, courseid, sesskey.
  * chat  body: JSON {"message": "...", "page_context": {...}}        -> {"message": "..."}
  * voice body: JSON {"audio_base64": "<WAV>", "page_context": {...}}  -> {transcript, response_text, audio_base64, audio_format}
+ *
+ * greeting body: JSON {"page_context": {...}}                      -> {"message": "...", "greeted": bool}
+ *   (welcome for a student with no previous conversation; empty message otherwise)
  *
  * page_context (title, url, visible text of the page the user is on) comes from the
  * browser and is length-limited here; the course id and name always come from Moodle.
@@ -105,6 +108,13 @@ if ($action === 'chat') {
         'page_context' => local_libiac_page_context($data['page_context'] ?? null, $course),
     ]);
     $contenttype = 'application/json';
+} else if ($action === 'greeting') {
+    $data = json_decode($raw, true);
+    $path = '/chat/greeting';
+    $body = json_encode([
+        'page_context' => local_libiac_page_context(is_array($data) ? ($data['page_context'] ?? null) : null, $course),
+    ]);
+    $contenttype = 'application/json';
 } else {
     local_libiac_fail('invalid', 400);
 }
@@ -137,6 +147,12 @@ if ($result['status'] < 200 || $result['status'] >= 300) {
 $response = $result['body'];
 if ($action === 'chat') {
     local_libiac_respond(200, ['message' => (string) ($response['message'] ?? '')]);
+}
+if ($action === 'greeting') {
+    local_libiac_respond(200, [
+        'message' => (string) ($response['message'] ?? ''),
+        'greeted' => !empty($response['greeted']),
+    ]);
 }
 local_libiac_respond(200, [
     'transcript' => (string) ($response['transcript'] ?? ''),
