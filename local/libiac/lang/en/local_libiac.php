@@ -36,3 +36,4 @@ $string['widget_error_unsupported'] = 'The audio format is not supported.';
 $string['widget_error_nospeech'] = 'No speech was detected. Try again.';
 $string['widget_error_unavailable'] = 'Libiac is not available right now. Try again later.';
 $string['widget_error_invalid'] = 'The message could not be sent.';
+$string['widget_greeting_failed'] = 'I could not load the welcome message, but you can write to me directly.';

@@ -355,24 +355,55 @@ define([], function() {
         // the next open tries again.
         var greetingDone = false;
         var greetingPending = false;
+
+        // Never leaves the panel blank: a returning student gets the conversation back, a new one
+        // the welcome, and on any failure a friendly notice (the input stays usable and the next
+        // open tries again).
+        var renderGreeting = function(data) {
+            var messagesList = data && Array.isArray(data.messages) ? data.messages : [];
+            if (data && data.has_history && messagesList.length) {
+                messagesList.forEach(function(item) {
+                    var mine = item.role === 'user';
+                    addMessage(mine ? 'user' : 'assistant', mine ? strings.you : strings.assistant, item.content);
+                });
+                return true;
+            }
+            if (data && typeof data.greeting === 'string' && data.greeting) {
+                addMessage('assistant', strings.assistant, data.greeting);
+                return true;
+            }
+            return false;
+        };
+
         var requestGreeting = function() {
             if (greetingDone || greetingPending || busy) {
                 return;
             }
             greetingPending = true;
             setBusy(true);
-            post('greeting', JSON.stringify({page_context: collectPageContext()}), 'application/json')
-                .then(function(data) {
-                    greetingDone = true;
-                    if (data.message) {
-                        addMessage('assistant', strings.assistant, data.message);
-                    }
-                }).catch(function() {
-                    return null;
-                }).then(function() {
-                    greetingPending = false;
-                    setBusy(false);
-                });
+            var finish = function() {
+                greetingPending = false;
+                setBusy(false);
+            };
+            try {
+                post('greeting', JSON.stringify({page_context: collectPageContext()}), 'application/json')
+                    .then(function(data) {
+                        if (renderGreeting(data)) {
+                            greetingDone = true;
+                            return;
+                        }
+                        // 200 with nothing to show (e.g. the model was unavailable): tell the student.
+                        console.error('local_libiac: /chat/greeting returned no greeting and no history', data);
+                        addMessage('error', '', strings.greeting_failed);
+                    }).catch(function(error) {
+                        console.error('local_libiac: /chat/greeting failed', error);
+                        addMessage('error', '', strings.greeting_failed);
+                    }).then(finish);
+            } catch (error) {
+                console.error('local_libiac: could not request the greeting', error);
+                addMessage('error', '', strings.greeting_failed);
+                finish();
+            }
         };
 
         var setOpen = function(open) {

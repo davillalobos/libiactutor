@@ -12,8 +12,8 @@
  * chat  body: JSON {"message": "...", "page_context": {...}}        -> {"message": "..."}
  * voice body: JSON {"audio_base64": "<WAV>", "page_context": {...}}  -> {transcript, response_text, audio_base64, audio_format}
  *
- * greeting body: JSON {"page_context": {...}}                      -> {"message": "...", "greeted": bool}
- *   (welcome for a student with no previous conversation; empty message otherwise)
+ * greeting body: JSON {"page_context": {...}}  -> {"greeting": "..."|null, "has_history": bool, "messages": [{role, content}]}
+ *   (a new student gets the welcome; a returning one gets the recent conversation back)
  *
  * page_context (title, url, visible text of the page the user is on) comes from the
  * browser and is length-limited here; the course id and name always come from Moodle.
@@ -149,9 +149,18 @@ if ($action === 'chat') {
     local_libiac_respond(200, ['message' => (string) ($response['message'] ?? '')]);
 }
 if ($action === 'greeting') {
+    $messages = [];
+    foreach ((is_array($response['messages'] ?? null) ? $response['messages'] : []) as $item) {
+        if (is_array($item) && in_array($item['role'] ?? '', ['user', 'assistant'], true)
+                && is_string($item['content'] ?? null)) {
+            $messages[] = ['role' => $item['role'], 'content' => $item['content']];
+        }
+    }
     local_libiac_respond(200, [
-        'message' => (string) ($response['message'] ?? ''),
-        'greeted' => !empty($response['greeted']),
+        'greeting' => is_string($response['greeting'] ?? null) && $response['greeting'] !== ''
+            ? $response['greeting'] : null,
+        'has_history' => !empty($response['has_history']),
+        'messages' => $messages,
     ]);
 }
 local_libiac_respond(200, [
