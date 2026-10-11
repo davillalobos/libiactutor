@@ -7,13 +7,14 @@
  * user and course — including their roles and the manageknowledge capability, evaluated here by
  * Moodle — and sends it to /api/v1/knowledge/documents in X-Moodle-Assertion headers.
  *
- * Query: action=list|upload|delete|getsettings|savesettings, courseid, sesskey.
+ * Query: action=list|upload|delete|getsettings|savesettings|getanalytics, courseid, sesskey.
  *   list   GET                                -> {"documents": [...]}
  *   upload POST multipart: file, access_level -> {"document": {...}}
  *   delete POST id=<uuid>                     -> {"ok": true}
  *   getsettings  GET                          -> {"settings": {...}}      (backend: GET  /api/v1/courses/{id}/settings)
  *   savesettings POST pedagogical_mode, depth_level, formative_assessment (0|1)
  *                                             -> {"settings": {...}}      (backend: PUT  /api/v1/courses/{id}/settings)
+ *   getanalytics GET                          -> {"analytics": {...}}     (backend: GET  /api/v1/courses/{id}/analytics)
  *
  * @package    local_libiac
  */
@@ -44,6 +45,56 @@ function local_libiac_kb_settings($settings): array {
         'depth_level' => (string) ($settings['depth_level'] ?? 'intermediate'),
         'formative_assessment_enabled' => !isset($settings['formative_assessment_enabled'])
             || !empty($settings['formative_assessment_enabled']),
+    ];
+}
+
+/** A list of {concept, students, rate}: whitelisted fields, bounded numbers, plain strings. */
+function local_libiac_kb_concepts($items): array {
+    $out = [];
+    foreach (is_array($items) ? array_slice($items, 0, 10) : [] as $item) {
+        $item = is_array($item) ? $item : [];
+        $out[] = [
+            'concept' => mb_substr(trim(strip_tags((string) ($item['concept'] ?? ''))), 0, 200),
+            'students' => max(0, (int) ($item['students'] ?? 0)),
+            'rate' => max(0.0, min(1.0, (float) ($item['rate'] ?? 0))),
+        ];
+    }
+    return $out;
+}
+
+/**
+ * The analytics the dashboard draws. Only aggregates reach the browser (the backend sends no student
+ * data either); every field is re-cast here so nothing unexpected is ever forwarded.
+ */
+function local_libiac_kb_analytics($data): array {
+    $data = is_array($data) ? $data : [];
+    $q = is_array($data['qualitative'] ?? null) ? $data['qualitative'] : [];
+    $n = is_array($data['quantitative'] ?? null) ? $data['quantitative'] : [];
+    $activities = is_array($q['formative_activities'] ?? null) ? $q['formative_activities'] : [];
+    $bytype = [];
+    foreach (is_array($activities['by_type'] ?? null) ? $activities['by_type'] : [] as $row) {
+        $type = (string) ($row['type'] ?? '');
+        if (in_array($type, ['razonamiento', 'caso_practico', 'deteccion_errores', 'otra'], true)) {
+            $bytype[] = ['type' => $type, 'count' => max(0, (int) ($row['count'] ?? 0))];
+        }
+    }
+    return [
+        'qualitative' => [
+            'available' => !empty($q['available']),
+            'students_with_evidence' => max(0, (int) ($q['students_with_evidence'] ?? 0)),
+            'struggling_concepts' => local_libiac_kb_concepts($q['struggling_concepts'] ?? []),
+            'comprehended_concepts' => local_libiac_kb_concepts($q['comprehended_concepts'] ?? []),
+            'formative_activities' => ['total' => max(0, (int) ($activities['total'] ?? 0)), 'by_type' => $bytype],
+        ],
+        'quantitative' => [
+            'window_days' => max(0, (int) ($n['window_days'] ?? 0)),
+            'students_in_cohort' => max(0, (int) ($n['students_in_cohort'] ?? 0)),
+            'active_students' => max(0, (int) ($n['active_students'] ?? 0)),
+            'active_rate' => max(0.0, min(1.0, (float) ($n['active_rate'] ?? 0))),
+            'onboarding_completed' => max(0, (int) ($n['onboarding_completed'] ?? 0)),
+            'onboarding_rate' => max(0.0, min(1.0, (float) ($n['onboarding_rate'] ?? 0))),
+            'messages_in_window' => max(0, (int) ($n['messages_in_window'] ?? 0)),
+        ],
     ];
 }
 
@@ -133,6 +184,10 @@ try {
         $result = \local_libiac\libiac_client::request(
             'GET', $backendurl, $assertion, '/api/v1/courses/' . rawurlencode((string) $course->id) . '/settings'
         );
+    } else if ($action === 'getanalytics') {
+        $result = \local_libiac\libiac_client::request(
+            'GET', $backendurl, $assertion, '/api/v1/courses/' . rawurlencode((string) $course->id) . '/analytics'
+        );
     } else if ($action === 'savesettings') {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             local_libiac_kb_fail('invalid', 405);
@@ -175,6 +230,9 @@ if ($result['status'] < 200 || $result['status'] >= 300) {
 
 if ($action === 'getsettings' || $action === 'savesettings') {
     local_libiac_kb_respond(200, ['settings' => local_libiac_kb_settings($result['body'])]);
+}
+if ($action === 'getanalytics') {
+    local_libiac_kb_respond(200, ['analytics' => local_libiac_kb_analytics($result['body'])]);
 }
 if ($action === 'list') {
     local_libiac_kb_respond(200, ['documents' => array_map('local_libiac_kb_document', array_values($result['body']))]);

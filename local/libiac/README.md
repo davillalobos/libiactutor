@@ -49,3 +49,9 @@ Ver los pasos de habilitación de servicios web, token y capability `local/libia
 - **Ya instalado:** Administración > Plugins > Resumen de plugins > Libiac > Desinstalar (elimina `local_libiac_user_ctx`), o `php admin/cli/uninstall_plugins.php --plugins=local_libiac --run`, y borrar la carpeta.
 - **Solo ocultar el widget:** vaciar el *Assertion signing secret*.
 - **Código:** `git checkout master` y borrar la rama.
+
+## Dashboard de Seguimiento Pedagógico (0.8.0)
+
+En la misma página **Biblioteca LibIAC** (solo quien tiene `local/libiac:manageknowledge`) hay un dashboard del curso: tarjetas de *Estudiantes activos*, *Onboarding completado* y *Actividades formativas realizadas*; la lista priorizada **Conceptos a reforzar** (barras) y la tabla **Conceptos dominados**. Los indicadores **cualitativos** (evidencia que el tutor registró) se muestran separados de los **cuantitativos** (conteos de uso).
+
+`knowledge_ajax.php?action=getanalytics` firma la aserción en el servidor y consulta `GET /api/v1/courses/{id}/analytics`; reenvía solo agregados con campos y números re-validados, y el navegador los dibuja con `textContent` (sin HTML inyectable). No viajan nombres ni mensajes de estudiantes. Con menos de 3 estudiantes el backend oculta el detalle por concepto (`ANALYTICS_MIN_COHORT`).

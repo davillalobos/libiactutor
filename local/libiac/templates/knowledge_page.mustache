@@ -75,6 +75,40 @@
         <p class="mt-2 mb-0" role="status" aria-live="polite" data-region="settings-message"></p>
     </form>
 
+    <h3 class="h5 mt-4">{{#str}} analytics_title, local_libiac {{/str}}</h3>
+    <section class="mb-4" data-region="analytics" aria-live="polite">
+        <p class="text-muted small">{{#str}} analytics_intro, local_libiac {{/str}}</p>
+        <p class="text-muted" data-region="analytics-message">{{#str}} analytics_loading, local_libiac {{/str}}</p>
+        <div data-region="analytics-body" hidden>
+            <div class="row mb-3" data-region="analytics-cards"></div>
+
+            <h4 class="h6">{{#str}} analytics_comprehension, local_libiac {{/str}}</h4>
+            <p class="text-muted small">{{#str}} analytics_comprehension_help, local_libiac {{/str}}</p>
+            <p class="alert alert-info" data-region="analytics-hidden" hidden>{{#str}} analytics_hidden, local_libiac {{/str}}</p>
+            <div data-region="analytics-qualitative">
+                <h5 class="h6">{{#str}} analytics_struggling, local_libiac {{/str}}</h5>
+                <ul class="list-unstyled" data-region="analytics-struggling"></ul>
+                <h5 class="h6">{{#str}} analytics_mastered, local_libiac {{/str}}</h5>
+                <div class="table-responsive">
+                    <table class="table table-sm generaltable">
+                        <thead>
+                            <tr>
+                                <th scope="col">{{#str}} analytics_col_concept, local_libiac {{/str}}</th>
+                                <th scope="col">{{#str}} analytics_col_students, local_libiac {{/str}}</th>
+                                <th scope="col">{{#str}} analytics_col_share, local_libiac {{/str}}</th>
+                            </tr>
+                        </thead>
+                        <tbody data-region="analytics-mastered"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <h4 class="h6 mt-3">{{#str}} analytics_usage, local_libiac {{/str}}</h4>
+            <p class="text-muted small mb-1">{{#str}} analytics_usage_help, local_libiac {{/str}}</p>
+            <p data-region="analytics-usage"></p>
+        </div>
+    </section>
+
     <form class="card card-body mb-4" data-region="upload-form" enctype="multipart/form-data">
         <div class="mb-3">
             <label for="local_libiac-file" class="form-label fw-bold">{{#str}} knowledge_file, local_libiac {{/str}}</label>

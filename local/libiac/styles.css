@@ -15,3 +15,8 @@
 .local_libiac-form { display: flex; gap: .25rem; padding: .5rem; border-top: 1px solid #dee2e6; }
 .local_libiac-form input[type="text"] { flex: 1 1 auto; min-width: 0; }
 .local_libiac-form button[aria-pressed="true"] { background: #c0392b; border-color: #c0392b; color: #fff; }
+
+/* Teacher dashboard bars */
+.local_libiac-knowledge .local_libiac-bar { width: 100%; max-width: 24rem; height: 0.75rem; }
+.local_libiac-knowledge .local_libiac-bar-warn { accent-color: #d9822b; }
+.local_libiac-knowledge .local_libiac-bar-ok { accent-color: #2e8b57; }
