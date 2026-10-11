@@ -7,7 +7,7 @@
  * user and course — including their roles and the manageknowledge capability, evaluated here by
  * Moodle — and sends it to /api/v1/knowledge/documents in X-Moodle-Assertion headers.
  *
- * Query: action=list|upload|delete|getsettings|savesettings|getanalytics, courseid, sesskey.
+ * Query: action=list|upload|delete|getsettings|savesettings|getanalytics|checkhealth, courseid, sesskey.
  *   list   GET                                -> {"documents": [...]}
  *   upload POST multipart: file, access_level -> {"document": {...}}
  *   delete POST id=<uuid>                     -> {"ok": true}
@@ -15,6 +15,8 @@
  *   savesettings POST pedagogical_mode, depth_level, formative_assessment (0|1)
  *                                             -> {"settings": {...}}      (backend: PUT  /api/v1/courses/{id}/settings)
  *   getanalytics GET                          -> {"analytics": {...}}     (backend: GET  /api/v1/courses/{id}/analytics)
+ *   checkhealth  GET                          -> {"health": {...}}        (backend: GET  /api/v1/system/status; always HTTP 200, the
+ *                                                state says what happened: ok|degraded|error|unreachable|badsignature|forbidden)
  *
  * @package    local_libiac
  */
@@ -98,6 +100,52 @@ function local_libiac_kb_analytics($data): array {
     ];
 }
 
+/** A component status as plain, whitelisted values. */
+function local_libiac_kb_component($component): array {
+    $component = is_array($component) ? $component : [];
+    $state = (string) ($component['status'] ?? '');
+    return [
+        'status' => in_array($state, ['ok', 'degraded', 'error'], true) ? $state : 'error',
+        'message' => mb_substr(trim(strip_tags((string) ($component['message'] ?? ''))), 0, 200),
+    ];
+}
+
+/**
+ * The connection diagnostic. Distinguishes what the administrator can act on: the server does not
+ * answer (wrong URL / network), answers 401 (issuer or secret do not match), or answers with the
+ * component states.
+ */
+function local_libiac_kb_health(string $backendurl, array $assertion): array {
+    $started = microtime(true);
+    try {
+        $result = \local_libiac\libiac_client::request('GET', $backendurl, $assertion, '/api/v1/system/status', null, null, 30);
+    } catch (\Exception $e) {
+        return ['state' => 'unreachable'];
+    }
+    $roundtrip = (int) round((microtime(true) - $started) * 1000);
+    if ($result['status'] === 401) {
+        return ['state' => 'badsignature', 'roundtrip_ms' => $roundtrip];
+    }
+    if ($result['status'] === 403) {
+        return ['state' => 'forbidden', 'roundtrip_ms' => $roundtrip];
+    }
+    if ($result['status'] < 200 || $result['status'] >= 300) {
+        return ['state' => 'error', 'roundtrip_ms' => $roundtrip];
+    }
+    $body = $result['body'];
+    $state = (string) ($body['status'] ?? '');
+    $components = is_array($body['components'] ?? null) ? $body['components'] : [];
+    return [
+        'state' => in_array($state, ['ok', 'degraded', 'error'], true) ? $state : 'error',
+        'roundtrip_ms' => $roundtrip,
+        'latency_ms' => max(0, (int) ($body['latency_ms'] ?? 0)),
+        'components' => [
+            'database' => local_libiac_kb_component($components['database'] ?? []),
+            'llm_provider' => local_libiac_kb_component($components['llm_provider'] ?? []),
+        ],
+    ];
+}
+
 /** Only the fields the page needs, as plain values. */
 function local_libiac_kb_document($doc): array {
     $doc = is_array($doc) ? $doc : [];
@@ -142,6 +190,10 @@ $assertion = \local_libiac\assertion_signer::build_and_sign(
 );
 $backendurl = get_config('local_libiac', 'backendurl');
 $base = '/api/v1/knowledge/documents';
+
+if ($action === 'checkhealth') {
+    local_libiac_kb_respond(200, ['health' => local_libiac_kb_health($backendurl, $assertion)]);
+}
 
 try {
     if ($action === 'list') {

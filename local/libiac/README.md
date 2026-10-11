@@ -55,3 +55,9 @@ Ver los pasos de habilitación de servicios web, token y capability `local/libia
 En la misma página **Biblioteca LibIAC** (solo quien tiene `local/libiac:manageknowledge`) hay un dashboard del curso: tarjetas de *Estudiantes activos*, *Onboarding completado* y *Actividades formativas realizadas*; la lista priorizada **Conceptos a reforzar** (barras) y la tabla **Conceptos dominados**. Los indicadores **cualitativos** (evidencia que el tutor registró) se muestran separados de los **cuantitativos** (conteos de uso).
 
 `knowledge_ajax.php?action=getanalytics` firma la aserción en el servidor y consulta `GET /api/v1/courses/{id}/analytics`; reenvía solo agregados con campos y números re-validados, y el navegador los dibuja con `textContent` (sin HTML inyectable). No viajan nombres ni mensajes de estudiantes. Con menos de 3 estudiantes el backend oculta el detalle por concepto (`ANALYTICS_MIN_COHORT`).
+
+## Probar conexión y diagnóstico (0.9.0)
+
+En **Administración del sitio > Plugins > Plugins locales > LibIAC** (junto a *emisor*, *clave secreta* y *URL del backend*) hay un botón **Probar conexión**. Llama a `knowledge_ajax.php?action=checkhealth`, que envía al backend una solicitud firmada con HMAC a `GET /api/v1/system/status` y muestra con insignias verde / amarillo / rojo: servidor FastAPI y tiempo de respuesta, base de datos PostgreSQL + pgvector y proveedor LLM / RAG. Si la firma no coincide el backend responde 401 y el panel lo explica (emisor o clave secreta distintos). La prueba usa los valores **guardados**: guarde antes de probar.
+
+Los ajustes conservan sus nombres (`local_libiac/backendurl` = URL del backend, `local_libiac/secret` = clave secreta HMAC) para no romper instalaciones existentes.
