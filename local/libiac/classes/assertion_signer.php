@@ -41,7 +41,9 @@ class assertion_signer {
         string $externalcourseid,
         string $issuedat,
         string $expiresat,
-        string $userfullname = ''
+        string $userfullname = '',
+        string $roles = '',
+        string $capabilities = ''
     ): array {
         $fields = [
             'issuer' => $issuer,
@@ -53,6 +55,14 @@ class assertion_signer {
         // Optional signed field: the student's display name, so the backend can address them.
         if ($userfullname !== '') {
             $fields['user_fullname'] = $userfullname;
+        }
+        // Optional signed fields evaluated by Moodle for this course: comma-separated role shortnames
+        // and capabilities, so the backend can authorize without trusting the browser.
+        if ($roles !== '') {
+            $fields['roles'] = $roles;
+        }
+        if ($capabilities !== '') {
+            $fields['capabilities'] = $capabilities;
         }
         return $fields;
     }
@@ -85,7 +95,9 @@ class assertion_signer {
         string $externaluserid,
         string $externalcourseid,
         int $lifetimeseconds,
-        string $userfullname = ''
+        string $userfullname = '',
+        string $roles = '',
+        string $capabilities = ''
     ): array {
         $now = time();
         $fields = self::build_fields(
@@ -94,7 +106,9 @@ class assertion_signer {
             $externalcourseid,
             (string) $now,
             (string) ($now + $lifetimeseconds),
-            $userfullname
+            $userfullname,
+            $roles,
+            $capabilities
         );
         return [
             'payload' => $fields,

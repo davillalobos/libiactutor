@@ -1,0 +1,78 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+}}
+{{!
+    @template local_libiac/knowledge_page
+
+    Knowledge library: upload form, documents table. The rows are drawn by the
+    local_libiac/knowledge_manager AMD module.
+
+    Example context (json):
+    {
+        "courseid": 2,
+        "coursename": "Curso de ejemplo"
+    }
+}}
+<div class="local_libiac-knowledge" data-region="local_libiac-knowledge">
+    <p class="text-muted">{{#str}} knowledge_intro, local_libiac {{/str}}</p>
+
+    <form class="card card-body mb-4" data-region="upload-form" enctype="multipart/form-data">
+        <div class="mb-3">
+            <label for="local_libiac-file" class="form-label fw-bold">{{#str}} knowledge_file, local_libiac {{/str}}</label>
+            <input type="file" id="local_libiac-file" name="file" class="form-control"
+                   accept=".pdf,.txt,.md,application/pdf,text/plain" required>
+            <div class="form-text text-muted small">{{#str}} knowledge_file_help, local_libiac {{/str}}</div>
+        </div>
+
+        <fieldset class="mb-3">
+            <legend class="h6">{{#str}} knowledge_classification, local_libiac {{/str}}</legend>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="access_level" id="local_libiac-access-student"
+                       value="student_accessible" checked>
+                <label class="form-check-label" for="local_libiac-access-student">
+                    {{#str}} knowledge_student, local_libiac {{/str}}
+                </label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="access_level" id="local_libiac-access-teacher"
+                       value="teacher_only">
+                <label class="form-check-label" for="local_libiac-access-teacher">
+                    {{#str}} knowledge_teacher, local_libiac {{/str}}
+                </label>
+            </div>
+        </fieldset>
+
+        <div>
+            <button type="submit" class="btn btn-primary" data-action="upload">{{#str}} knowledge_upload, local_libiac {{/str}}</button>
+        </div>
+        <p class="mt-2 mb-0" role="status" aria-live="polite" data-region="message"></p>
+    </form>
+
+    <h3 class="h5">{{#str}} knowledge_documents, local_libiac {{/str}}</h3>
+    <div class="table-responsive">
+        <table class="table table-striped generaltable">
+            <thead>
+                <tr>
+                    <th scope="col">{{#str}} col_name, local_libiac {{/str}}</th>
+                    <th scope="col">{{#str}} col_classification, local_libiac {{/str}}</th>
+                    <th scope="col">{{#str}} col_date, local_libiac {{/str}}</th>
+                    <th scope="col">{{#str}} col_chunks, local_libiac {{/str}}</th>
+                    <th scope="col">{{#str}} col_status, local_libiac {{/str}}</th>
+                    <th scope="col"><span class="sr-only visually-hidden">{{#str}} knowledge_delete, local_libiac {{/str}}</span></th>
+                </tr>
+            </thead>
+            <tbody data-region="rows"></tbody>
+        </table>
+    </div>
+    <p class="text-muted" data-region="empty" hidden>{{#str}} knowledge_empty, local_libiac {{/str}}</p>
+</div>

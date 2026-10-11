@@ -34,6 +34,11 @@ El widget **no aparece** hasta que el secreto está definido, ni para invitados 
 ## Requisito en el backend
 El backend (rama `feat/moodle-principal-adapter` del repo libiac) acepta la assertion en `/chat` y `/voice/turn`, con `MOODLE_ASSERTION_ISSUER` y `MOODLE_ASSERTION_SECRET` iguales a los de este plugin. Con `MOODLE_AUTO_PROVISION=true` (por defecto) crea el usuario de Libiac y su `ExternalIdentity` (proveedor `moodle`) la primera vez que un usuario escribe en el chat; con `false`, el usuario debe vincularse antes.
 
+## Biblioteca de conocimiento (docentes)
+Capacidad `local/libiac:manageknowledge` (contexto de curso; por defecto `editingteacher`, `teacher` y `manager`). Quien la tiene ve **"Biblioteca LibIAC"** en la navegación del curso (`/local/libiac/knowledge.php?id=<curso>`): sube PDF/TXT (clasificación *accesible para estudiantes* o *reservado para docente*), ve la tabla con estado, chunks y fecha, y elimina documentos. Los que están `pending`/`processing` se refrescan solos cada 3 s.
+
+Las llamadas pasan por `knowledge_ajax.php` (sesión de Moodle + sesskey + capacidad): el servidor firma `X-Moodle-Assertion` con el **rol y la capacidad evaluados por Moodle** para ese curso y lo envía a `/api/v1/knowledge/documents`. El backend solo acepta a ese docente para **ese curso**. El material `teacher_only` nunca llega al tutor que responde a estudiantes.
+
 ## Web Services
 Ver los pasos de habilitación de servicios web, token y capability `local/libiac:managecontext` (rol del usuario externo `libiac_api`).
 

@@ -21,6 +21,51 @@ class libiac_client {
      * @return array{status: int, body: array<string, mixed>}
      * @throws \moodle_exception on a transport error (no HTTP status at all)
      */
+    /**
+     * Same signed headers as forward(), for any method. `$body` is a string (JSON) or, for a
+     * multipart upload, an array of fields where files are \CURLFile objects (no Content-Type is set: cURL
+     * adds the multipart boundary). Never throws on a non-2xx status.
+     *
+     * @param string $method GET, POST or DELETE
+     * @return array{status: int, body: array<string, mixed>}
+     * @throws \moodle_exception on a transport error
+     */
+    public static function request(
+        string $method,
+        string $backendurl,
+        array $assertion,
+        string $path,
+        $body = null,
+        ?string $contenttype = null,
+        int $timeout = 60
+    ): array {
+        $headers = [
+            'X-Moodle-Assertion: ' . json_encode($assertion['payload'], JSON_UNESCAPED_SLASHES),
+            'X-Moodle-Assertion-Signature: ' . $assertion['signature'],
+        ];
+        if ($contenttype !== null) {
+            $headers[] = 'Content-Type: ' . $contenttype;
+        }
+        $curl = new \curl();
+        $curl->setHeader($headers);
+        $curl->setopt(['CURLOPT_TIMEOUT' => $timeout]);
+        $url = rtrim($backendurl, '/') . $path;
+
+        if ($method === 'GET') {
+            $response = $curl->get($url);
+        } else if ($method === 'DELETE') {
+            $response = $curl->delete($url);
+        } else {
+            $response = $curl->post($url, $body ?? '');
+        }
+        $info = $curl->get_info();
+        if (empty($info['http_code'])) {
+            throw new \moodle_exception('connectionerror', 'local_libiac');
+        }
+        $decoded = json_decode((string) $response, true);
+        return ['status' => (int) $info['http_code'], 'body' => is_array($decoded) ? $decoded : []];
+    }
+
     public static function forward(
         string $backendurl,
         array $assertion,
