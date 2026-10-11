@@ -26,6 +26,55 @@
 <div class="local_libiac-knowledge" data-region="local_libiac-knowledge">
     <p class="text-muted">{{#str}} knowledge_intro, local_libiac {{/str}}</p>
 
+    <h3 class="h5">{{#str}} settings_title, local_libiac {{/str}}</h3>
+    <form class="card card-body mb-4" data-region="settings-form">
+        <p class="text-muted small mb-3">{{#str}} settings_intro, local_libiac {{/str}}</p>
+
+        <fieldset class="mb-3">
+            <legend class="h6">{{#str}} settings_mode, local_libiac {{/str}}</legend>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="pedagogical_mode" id="local_libiac-mode-reactive" value="reactive">
+                <label class="form-check-label" for="local_libiac-mode-reactive">
+                    <strong>{{#str}} settings_mode_reactive, local_libiac {{/str}}</strong>
+                    <span class="d-block text-muted small">{{#str}} settings_mode_reactive_desc, local_libiac {{/str}}</span>
+                </label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="pedagogical_mode" id="local_libiac-mode-proactive" value="proactive">
+                <label class="form-check-label" for="local_libiac-mode-proactive">
+                    <strong>{{#str}} settings_mode_proactive, local_libiac {{/str}}</strong>
+                    <span class="d-block text-muted small">{{#str}} settings_mode_proactive_desc, local_libiac {{/str}}</span>
+                </label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="pedagogical_mode" id="local_libiac-mode-mixed" value="mixed" checked>
+                <label class="form-check-label" for="local_libiac-mode-mixed">
+                    <strong>{{#str}} settings_mode_mixed, local_libiac {{/str}}</strong>
+                    <span class="d-block text-muted small">{{#str}} settings_mode_mixed_desc, local_libiac {{/str}}</span>
+                </label>
+            </div>
+        </fieldset>
+
+        <div class="mb-3">
+            <label for="local_libiac-depth" class="form-label fw-bold">{{#str}} settings_depth, local_libiac {{/str}}</label>
+            <select id="local_libiac-depth" name="depth_level" class="form-select custom-select">
+                <option value="basic">{{#str}} settings_depth_basic, local_libiac {{/str}}</option>
+                <option value="intermediate" selected>{{#str}} settings_depth_intermediate, local_libiac {{/str}}</option>
+                <option value="advanced">{{#str}} settings_depth_advanced, local_libiac {{/str}}</option>
+            </select>
+        </div>
+
+        <div class="form-check mb-3">
+            <input class="form-check-input" type="checkbox" id="local_libiac-formative" name="formative_assessment" value="1" checked>
+            <label class="form-check-label" for="local_libiac-formative">{{#str}} settings_formative, local_libiac {{/str}}</label>
+        </div>
+
+        <div>
+            <button type="submit" class="btn btn-primary" data-action="save-settings">{{#str}} settings_save, local_libiac {{/str}}</button>
+        </div>
+        <p class="mt-2 mb-0" role="status" aria-live="polite" data-region="settings-message"></p>
+    </form>
+
     <form class="card card-body mb-4" data-region="upload-form" enctype="multipart/form-data">
         <div class="mb-3">
             <label for="local_libiac-file" class="form-label fw-bold">{{#str}} knowledge_file, local_libiac {{/str}}</label>

@@ -34,7 +34,8 @@ class knowledge_page implements \renderable, \templatable {
             'knowledge_student', 'knowledge_teacher', 'knowledge_delete', 'knowledge_confirmdelete',
             'knowledge_uploading', 'knowledge_uploaded', 'knowledge_deleted', 'knowledge_nofile',
             'knowledge_error_forbidden', 'knowledge_error_toolarge', 'knowledge_error_unsupported',
-            'knowledge_error_unavailable', 'knowledge_error_invalid', 'knowledge_error_notfound'];
+            'knowledge_error_unavailable', 'knowledge_error_invalid', 'knowledge_error_notfound',
+            'settings_saving', 'settings_saved'];
         $strings = [];
         foreach ($keys as $key) {
             $strings[$key] = get_string($key, 'local_libiac');

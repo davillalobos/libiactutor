@@ -37,6 +37,8 @@ El backend (rama `feat/moodle-principal-adapter` del repo libiac) acepta la asse
 ## Biblioteca de conocimiento (docentes)
 Capacidad `local/libiac:manageknowledge` (contexto de curso; por defecto `editingteacher`, `teacher` y `manager`). Quien la tiene ve **"Biblioteca LibIAC"** en la navegación del curso (`/local/libiac/knowledge.php?id=<curso>`): sube PDF/TXT (clasificación *accesible para estudiantes* o *reservado para docente*), ve la tabla con estado, chunks y fecha, y elimina documentos. Los que están `pending`/`processing` se refrescan solos cada 3 s.
 
+En la misma pantalla, **Configuración pedagógica del tutor**: modalidad (Reactivo / Proactivo / Mixto, predeterminado), profundidad (Básica / Intermedia / Avanzada) y la casilla de ejercicios y evaluaciones formativas. Se leen con `getsettings` y se guardan con `savesettings` (PUT a `/api/v1/courses/{id}/settings`, firmado con HMAC en el servidor).
+
 Las llamadas pasan por `knowledge_ajax.php` (sesión de Moodle + sesskey + capacidad): el servidor firma `X-Moodle-Assertion` con el **rol y la capacidad evaluados por Moodle** para ese curso y lo envía a `/api/v1/knowledge/documents`. El backend solo acepta a ese docente para **ese curso**. El material `teacher_only` nunca llega al tutor que responde a estudiantes.
 
 ## Web Services

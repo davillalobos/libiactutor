@@ -26,7 +26,7 @@ class libiac_client {
      * multipart upload, an array of fields where files are \CURLFile objects (no Content-Type is set: cURL
      * adds the multipart boundary). Never throws on a non-2xx status.
      *
-     * @param string $method GET, POST or DELETE
+     * @param string $method GET, POST, PUT or DELETE
      * @return array{status: int, body: array<string, mixed>}
      * @throws \moodle_exception on a transport error
      */
@@ -55,6 +55,10 @@ class libiac_client {
             $response = $curl->get($url);
         } else if ($method === 'DELETE') {
             $response = $curl->delete($url);
+        } else if ($method === 'PUT') {
+            // Moodle's curl::put() uploads a file; a JSON body is a POST with the method overridden.
+            $curl->setopt(['CURLOPT_CUSTOMREQUEST' => 'PUT']);
+            $response = $curl->post($url, $body ?? '');
         } else {
             $response = $curl->post($url, $body ?? '');
         }
