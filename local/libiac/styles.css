@@ -20,3 +20,6 @@
 .local_libiac-knowledge .local_libiac-bar { width: 100%; max-width: 24rem; height: 0.75rem; }
 .local_libiac-knowledge .local_libiac-bar-warn { accent-color: #d9822b; }
 .local_libiac-knowledge .local_libiac-bar-ok { accent-color: #2e8b57; }
+
+.local_libiac-msg .local_libiac-listen { display: block; margin-top: .25rem; text-decoration: none; }
+.local_libiac-msg .local_libiac-listen[aria-pressed="true"] { font-weight: 600; }

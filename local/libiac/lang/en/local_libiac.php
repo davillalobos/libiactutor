@@ -130,3 +130,4 @@ $string['diag_forbidden'] = 'The backend accepted the signature but denied acces
 $string['diag_servererror'] = 'The backend answered with an unexpected error.';
 $string['diag_signature_ok'] = 'Signature accepted: the shared secret is valid.';
 $string['diag_notconfigured'] = 'Set the issuer, secret and backend URL, save, and test again.';
+$string['widget_listen'] = 'Listen';

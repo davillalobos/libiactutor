@@ -130,3 +130,4 @@ $string['diag_forbidden'] = 'El backend aceptó la firma pero denegó el acceso 
 $string['diag_servererror'] = 'El backend respondió con un error inesperado.';
 $string['diag_signature_ok'] = 'Firma aceptada: la clave secreta compartida es válida.';
 $string['diag_notconfigured'] = 'Configure el emisor, la clave secreta y la URL del backend, guarde y pruebe de nuevo.';
+$string['widget_listen'] = 'Escuchar';
