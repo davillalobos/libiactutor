@@ -131,3 +131,6 @@ $string['diag_servererror'] = 'El backend respondió con un error inesperado.';
 $string['diag_signature_ok'] = 'Firma aceptada: la clave secreta compartida es válida.';
 $string['diag_notconfigured'] = 'Configure el emisor, la clave secreta y la URL del backend, guarde y pruebe de nuevo.';
 $string['widget_listen'] = 'Escuchar';
+$string['widget_voice_settings'] = 'Configurar voz';
+$string['widget_voice_label'] = 'Voz';
+$string['widget_voice_none'] = 'No hay voces en español en este navegador';

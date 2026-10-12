@@ -131,3 +131,6 @@ $string['diag_servererror'] = 'The backend answered with an unexpected error.';
 $string['diag_signature_ok'] = 'Signature accepted: the shared secret is valid.';
 $string['diag_notconfigured'] = 'Set the issuer, secret and backend URL, save, and test again.';
 $string['widget_listen'] = 'Listen';
+$string['widget_voice_settings'] = 'Voice settings';
+$string['widget_voice_label'] = 'Voice';
+$string['widget_voice_none'] = 'No Spanish voices available in this browser';

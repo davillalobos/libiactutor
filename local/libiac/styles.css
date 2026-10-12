@@ -23,3 +23,8 @@
 
 .local_libiac-msg .local_libiac-listen { display: block; margin-top: .25rem; text-decoration: none; }
 .local_libiac-msg .local_libiac-listen[aria-pressed="true"] { font-weight: 600; }
+.local_libiac-header-actions { display: flex; align-items: center; gap: .25rem; }
+.local_libiac-voicebox { padding: .5rem .75rem; background: #f8f9fa; border-bottom: 1px solid #ced4da; }
+.local_libiac-voicebox[hidden] { display: none; }
+.local_libiac-voicelabel { display: block; font-size: .75rem; font-weight: 600; margin-bottom: .25rem; }
+.local_libiac-voicebox select { width: 100%; }

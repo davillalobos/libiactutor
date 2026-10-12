@@ -39,7 +39,8 @@ class widget {
 
         $keys = ['open', 'close', 'title', 'messagelabel', 'messageplaceholder', 'send', 'mic_start', 'mic_stop',
             'recording', 'processing', 'micdenied', 'micunsupported', 'you', 'assistant', 'error_unauthorized',
-            'error_toolarge', 'error_unsupported', 'error_nospeech', 'error_unavailable', 'error_invalid', 'greeting_failed', 'listen'];
+            'error_toolarge', 'error_unsupported', 'error_nospeech', 'error_unavailable', 'error_invalid', 'greeting_failed', 'listen',
+            'voice_settings', 'voice_label', 'voice_none'];
         $strings = [];
         foreach ($keys as $key) {
             $strings[$key] = get_string('widget_' . $key, 'local_libiac');

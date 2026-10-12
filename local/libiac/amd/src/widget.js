@@ -134,12 +134,57 @@ define([], function() {
         return String(text).replace(/[*_`#>|]/g, ' ').replace(/\s{2,}/g, ' ').trim();
     };
 
-    var pickVoice = function(lang) {
-        var voices = synth.getVoices ? synth.getVoices() : [];
-        var base = lang.slice(0, 2).toLowerCase();
+    var VOICE_KEY = 'libiac_voice_uri';
+    var LATAM = ['es-mx', 'es-419', 'es-us', 'es-co', 'es-ar', 'es-cl'];
+    var PREFERRED = ['dalia', 'sabina', 'paulina', 'paloma', 'monica', 'google español', 'microsoft'];
+
+    var spanishVoices = function() {
+        var voices = synth && synth.getVoices ? synth.getVoices() : [];
         return voices.filter(function(voice) {
-            return voice.lang && voice.lang.toLowerCase().indexOf(base) === 0;
-        })[0] || null;
+            return voice.lang && voice.lang.toLowerCase().replace('_', '-').indexOf('es') === 0;
+        });
+    };
+
+    // Default: a Latin American accent (never es-ES while one exists), preferring the listed voices.
+    var defaultVoice = function(list) {
+        var latin = list.filter(function(voice) {
+            return LATAM.indexOf(voice.lang.toLowerCase().replace('_', '-')) !== -1;
+        });
+        var pool = latin.length ? latin : list;
+        for (var i = 0; i < PREFERRED.length; i++) {
+            var found = pool.filter(function(voice) {
+                return voice.name.toLowerCase().indexOf(PREFERRED[i]) !== -1;
+            })[0];
+            if (found) {
+                return found;
+            }
+        }
+        return pool[0] || null;
+    };
+
+    var savedVoiceUri = function() {
+        try {
+            return window.localStorage.getItem(VOICE_KEY);
+        } catch (error) {
+            return null;
+        }
+    };
+
+    var saveVoiceUri = function(uri) {
+        try {
+            window.localStorage.setItem(VOICE_KEY, uri);
+        } catch (error) {
+            return;
+        }
+    };
+
+    var activeVoice = function() {
+        var list = spanishVoices();
+        var uri = savedVoiceUri();
+        var saved = uri ? list.filter(function(voice) {
+            return voice.voiceURI === uri;
+        })[0] : null;
+        return saved || defaultVoice(list);
     };
 
     var stopSpeaking = function() {
@@ -162,8 +207,8 @@ define([], function() {
             return;
         }
         var utterance = new window.SpeechSynthesisUtterance(speakableText(text));
-        utterance.lang = document.documentElement.lang || 'es';
-        var voice = pickVoice(utterance.lang);
+        var voice = activeVoice();
+        utterance.lang = voice ? voice.lang : (document.documentElement.lang || 'es');
         if (voice) {
             utterance.voice = voice;
         }
@@ -205,8 +250,60 @@ define([], function() {
         heading.textContent = strings.title;
         var closeButton = el('button', 'btn btn-sm', {type: 'button', 'aria-label': strings.close, title: strings.close});
         closeButton.innerHTML = '&times;';
+        var gear = el('button', 'btn btn-sm', {
+            type: 'button', 'aria-expanded': 'false', 'aria-label': strings.voice_settings, title: strings.voice_settings
+        });
+        gear.innerHTML = '&#9881;&#65039;';
+        var headerActions = el('div', 'local_libiac-header-actions');
+        if (synth) {
+            headerActions.appendChild(gear);
+        }
+        headerActions.appendChild(closeButton);
         header.appendChild(heading);
-        header.appendChild(closeButton);
+        header.appendChild(headerActions);
+
+        var voiceBox = el('div', 'local_libiac-voicebox', {hidden: 'hidden'});
+        var voiceLabel = el('label', 'local_libiac-voicelabel', {'for': 'local_libiac-voice'});
+        voiceLabel.textContent = strings.voice_label;
+        var voiceSelect = el('select', 'form-select custom-select custom-select-sm', {id: 'local_libiac-voice'});
+        voiceBox.appendChild(voiceLabel);
+        voiceBox.appendChild(voiceSelect);
+
+        var fillVoices = function() {
+            var list = spanishVoices();
+            var current = activeVoice();
+            voiceSelect.textContent = '';
+            if (!list.length) {
+                var none = el('option');
+                none.textContent = strings.voice_none;
+                voiceSelect.appendChild(none);
+                voiceSelect.disabled = true;
+                return;
+            }
+            voiceSelect.disabled = false;
+            list.forEach(function(voice) {
+                var option = el('option');
+                option.value = voice.voiceURI;
+                option.textContent = voice.name + ' (' + voice.lang + ')';
+                option.selected = !!current && current.voiceURI === voice.voiceURI;
+                voiceSelect.appendChild(option);
+            });
+        };
+        if (synth) {
+            fillVoices();
+            // Browsers load their voices asynchronously.
+            if (synth.addEventListener) {
+                synth.addEventListener('voiceschanged', fillVoices);
+            }
+            gear.addEventListener('click', function() {
+                voiceBox.hidden = !voiceBox.hidden;
+                gear.setAttribute('aria-expanded', voiceBox.hidden ? 'false' : 'true');
+            });
+            voiceSelect.addEventListener('change', function() {
+                saveVoiceUri(voiceSelect.value);
+                stopSpeaking();
+            });
+        }
 
         var messages = el('div', 'local_libiac-messages', {role: 'log', 'aria-live': 'polite'});
         var status = el('p', 'local_libiac-status text-muted small', {role: 'status'});
@@ -226,6 +323,7 @@ define([], function() {
         form.appendChild(mic);
 
         panel.appendChild(header);
+        panel.appendChild(voiceBox);
         panel.appendChild(messages);
         panel.appendChild(status);
         panel.appendChild(form);
