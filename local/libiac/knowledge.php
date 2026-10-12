@@ -6,6 +6,7 @@
  */
 
 require_once(__DIR__ . '/../../config.php');
+require_once($CFG->libdir . '/filelib.php'); // Moodle's \curl class lives here.
 
 $courseid = required_param('id', PARAM_INT);
 $course = get_course($courseid);

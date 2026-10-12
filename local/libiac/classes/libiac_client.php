@@ -3,6 +3,9 @@ namespace local_libiac;
 
 defined('MOODLE_INTERNAL') || die();
 
+global $CFG;
+require_once($CFG->libdir . '/filelib.php');
+
 /**
  * Minimal HTTP client from the Moodle server to Libiac Core. Deliberately thin:
  * no retries, no caching, no Libiac business logic.

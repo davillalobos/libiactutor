@@ -24,6 +24,7 @@
 define('AJAX_SCRIPT', true);
 
 require_once(__DIR__ . '/../../config.php');
+require_once($CFG->libdir . '/filelib.php'); // Moodle's \curl class lives here.
 
 const LOCAL_LIBIAC_MAX_AUDIO_BYTES = 10 * 1024 * 1024; // Same limit as the backend (VOICE_MAX_AUDIO_BYTES).
 const LOCAL_LIBIAC_MAX_MESSAGE_CHARS = 4000;
@@ -53,7 +54,7 @@ function local_libiac_respond(int $status, array $data): void {
 }
 
 function local_libiac_fail(string $key, int $status): void {
-    local_libiac_respond($status, ['error' => $key]);
+    local_libiac_respond($status, ['status' => 'error', 'error' => $key, 'message' => $key]);
 }
 
 $courseid = required_param('courseid', PARAM_INT);
@@ -127,7 +128,7 @@ $assertion = \local_libiac\assertion_signer::build_and_sign(
 
 try {
     $result = \local_libiac\libiac_client::forward($backendurl, $assertion, $path, $body, $contenttype);
-} catch (\Exception $e) {
+} catch (\Throwable $e) {
     local_libiac_fail('unavailable', 502);
 }
 

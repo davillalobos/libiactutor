@@ -24,6 +24,7 @@
 define('AJAX_SCRIPT', true);
 
 require_once(__DIR__ . '/../../config.php');
+require_once($CFG->libdir . '/filelib.php'); // Moodle's \curl class lives here.
 
 const LOCAL_LIBIAC_KB_MAX_BYTES = 20 * 1024 * 1024; // Same limit as the backend.
 const LOCAL_LIBIAC_KB_CAPABILITY = 'local/libiac:manageknowledge';
@@ -36,7 +37,7 @@ function local_libiac_kb_respond(int $status, array $data): void {
 }
 
 function local_libiac_kb_fail(string $key, int $status): void {
-    local_libiac_kb_respond($status, ['error' => $key]);
+    local_libiac_kb_respond($status, ['status' => 'error', 'error' => $key, 'message' => $key]);
 }
 
 /** The course settings the page needs, as plain values. */
@@ -119,7 +120,7 @@ function local_libiac_kb_health(string $backendurl, array $assertion): array {
     $started = microtime(true);
     try {
         $result = \local_libiac\libiac_client::request('GET', $backendurl, $assertion, '/api/v1/system/status', null, null, 30);
-    } catch (\Exception $e) {
+    } catch (\Throwable $e) {
         return ['state' => 'unreachable'];
     }
     $roundtrip = (int) round((microtime(true) - $started) * 1000);
@@ -262,7 +263,7 @@ try {
     } else {
         local_libiac_kb_fail('invalid', 400);
     }
-} catch (\Exception $e) {
+} catch (\Throwable $e) {
     local_libiac_kb_fail('unavailable', 502);
 }
 
